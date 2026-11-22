@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const MAX_BYTES = 1048576;
+const OUTPUT_NAME = 'entry.png';
 
 function magic(bytes: Buffer): Buffer | null {
   if (bytes.length >= 4 && bytes.subarray(0, 4).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47]))) {
@@ -23,6 +24,9 @@ try {
   if (!fs.existsSync(sourcePath)) {
     throw new Error(`Source missing: ${sourcePath}`);
   }
+  if (!fs.statSync(sourcePath).isFile()) {
+    throw new Error(`Source is not a regular file: ${sourcePath}`);
+  }
   if (fs.statSync(sourcePath).size > MAX_BYTES) {
     throw new Error(`Source exceeds MAX_BYTES (${MAX_BYTES} bytes)`);
   }
@@ -35,7 +39,7 @@ try {
     throw new Error('Source must start with PNG or JPEG magic bytes');
   }
   const outputDir = process.env.MAKEFUN_OUTPUT_DIR || '/output';
-  const outputPath = path.resolve(outputDir, 'entry.png');
+  const outputPath = path.resolve(outputDir, OUTPUT_NAME);
   fs.mkdirSync(outputDir, { recursive: true });
   fs.writeFileSync(outputPath, source);
   const written = fs.readFileSync(outputPath);
